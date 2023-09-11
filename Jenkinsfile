@@ -11,7 +11,7 @@ pipeline{
 
         stages{
 
-                stage('Clean WorkSpace'){
+            stage('Clean WorkSpace'){
 
                     steps{
 
@@ -21,22 +21,45 @@ pipeline{
                         }
                     }
                 }
-                stage('Checkout SCM'){
+            
+            stage('Check SCM'){
+
                     steps{
 
-                        step{
-                            script{
-                                git credentialsId: 'github',
-                                url: 'https://github.com/emushene/gitops_argocd_ci.git',
-                                branch: 'main'
+                        script {
+
+                            git credentialsId: 'github'
+                            url: 'https://github.com/emushene/gitops_argocd_ci.git'
+                            branch: 'master'
+                        }
+                    }
+                }
+           
+            stage('Build Docker Image'){
+
+                    steps{
+
+                        script {
+                            
+                            docker_image= docker.build "${IMAGE_NAME}"
+                            
+                        }
+                    }
+                }
+                 stage('Push Docker Image'){
+
+                    steps{
+
+                        script {
+                            
+                            docker.withRegistry('', REGISTRY_CRED){
+                                docker_image.push("$BUILD_NUMBER")
+                                docker_image.push('latest')
                             }
+                            
                         }
                     }
                 }
 
         }
-
-
-
-
 }
